@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>VetLearn – Clinical Case Practice</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2d8a5e;
+    --green-light: #3db87e;
+    --green-pale: #e8f7f1;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --red-pale: #fef2f2;
+    --blue: #3b82f6;
+    --blue-pale: #eff6ff;
+    --bg: #f4f9f6;
+    --card: #ffffff;
+    --text: #1a2e25;
+    --muted: #6b8c7a;
+    --border: #d1e8dc;
+    --shadow: 0 4px 24px rgba(45,138,94,0.10);
+    --radius: 18px;
+    --radius-sm: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; }
+  #app { width: 100%; max-width: 420px; min-height: 100vh; background: var(--bg); position: relative; overflow: hidden; }
+
+  .screen { display: none; flex-direction: column; min-height: 100vh; padding: 0 0 24px; animation: fadeIn .3s ease; }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── HEADER ── */
+  .header { background: var(--green); color: white; padding: 20px 20px 16px; display: flex; align-items: center; gap: 12px; }
+  .header-back { background: rgba(255,255,255,.2); border: none; color: white; width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink:0; }
+  .header h2 { font-size: 17px; font-weight: 800; flex: 1; }
+  .header .step-badge { background: rgba(255,255,255,.2); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space:nowrap; }
+
+  /* ── SPLASH ── */
+  #screen-splash { background: linear-gradient(160deg, #1d6644 0%, #2d8a5e 60%, #3db87e 100%); align-items: center; justify-content: center; gap: 0; padding: 0; }
+  .splash-logo { font-size: 72px; animation: pop .6s ease; }
+  .splash-name { font-family: 'DM Serif Display', serif; font-size: 40px; color: white; margin-top: 12px; }
+  .splash-sub { font-size: 13px; color: rgba(255,255,255,.7); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .splash-loader { margin-top: 48px; width: 40px; height: 4px; background: rgba(255,255,255,.2); border-radius: 4px; overflow: hidden; }
+  .splash-loader-bar { height: 100%; width: 0; background: white; border-radius: 4px; animation: load 1.8s ease forwards; }
+  @keyframes load { to { width: 100%; } }
+  @keyframes pop { 0%{transform:scale(0)} 70%{transform:scale(1.1)} 100%{transform:scale(1)} }
+
+  /* ── AUTH SCREENS ── */
+  .auth-hero { background: linear-gradient(160deg, #2d8a5e 0%, #1d6644 100%); padding: 36px 24px 44px; text-align: center; color: white; }
+  .auth-hero .logo { font-size: 44px; margin-bottom: 8px; }
+  .auth-hero h1 { font-family: 'DM Serif Display', serif; font-size: 26px; }
+  .auth-hero p { font-size: 13px; opacity: .75; font-weight: 600; margin-top: 4px; }
+  .auth-body { padding: 28px 24px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .field-input { background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); outline: none; transition: border-color .2s; width: 100%; }
+  .field-input:focus { border-color: var(--green); }
+  .field-input-row { display: flex; gap: 8px; }
+  .phone-prefix { background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 14px 14px; font-size: 15px; font-weight: 800; color: var(--muted); white-space: nowrap; }
+  .btn-action { background: var(--green); color: white; border: none; border-radius: var(--radius-sm); padding: 16px; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; width: 100%; transition: background .15s, transform .1s; box-shadow: 0 4px 12px rgba(45,138,94,.25); }
+  .btn-action:active { transform: scale(.98); }
+  .btn-action:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; }
+  .btn-outline { background: white; color: var(--green); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%; }
+  .divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; font-weight: 700; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 2px; background: var(--border); }
+  .auth-switch { text-align: center; font-size: 14px; font-weight: 700; color: var(--muted); }
+  .auth-switch a { color: var(--green); text-decoration: none; font-weight: 800; cursor: pointer; }
+  .forgot-link { text-align: right; font-size: 13px; font-weight: 700; color: var(--green); cursor: pointer; }
+
+  /* OTP */
+  .otp-row { display: flex; gap: 10px; justify-content: center; }
+  .otp-input { width: 48px; height: 56px; background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); text-align: center; font-family: 'Nunito', sans-serif; font-size: 22px; font-weight: 900; color: var(--text); outline: none; transition: border-color .2s; }
+  .otp-input:focus { border-color: var(--green); }
+  .otp-info { background: var(--green-pale); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--green); text-align: center; }
+  .resend-row { text-align: center; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .resend-row span { color: var(--green); cursor: pointer; }
+
+  /* ROLE SELECT */
+  .role-options { display: flex; flex-direction: column; gap: 10px; }
+  .role-card { background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all .15s; }
+  .role-card.selected { border-color: var(--green); background: var(--green-pale); }
+  .role-icon { font-size: 28px; width: 48px; height: 48px; background: var(--green-pale); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .role-info strong { font-size: 15px; font-weight: 800; display: block; }
+  .role-info span { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .role-check { margin-left: auto; font-size: 22px; opacity: 0; transition: opacity .15s; }
+  .role-card.selected .role-check { opacity: 1; }
+
+  /* ── SUBSCRIPTION ── */
+  #screen-subscribe { padding: 0; }
+  .sub-hero { background: linear-gradient(160deg, #1d6644 0%, #2d8a5e 100%); padding: 32px 24px; color: white; text-align: center; }
+  .sub-hero h1 { font-family: 'DM Serif Display', serif; font-size: 26px; margin-bottom: 6px; }
+  .sub-hero p { font-size: 13px; opacity: .75; font-weight: 600; }
+  .sub-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  .plan-card { background: white; border: 2px solid var(--border); border-radius: var(--radius); padding: 20px; cursor: pointer; transition: all .2s; position: relative; }
+  .plan-card.selected { border-color: var(--green); box-shadow: 0 0 0 4px rgba(45,138,94,.1); }
+  .plan-card.premium { border-color: var(--amber); }
+  .plan-card.premium.selected { border-color: var(--green); }
+  .plan-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--amber); color: white; font-size: 11px; font-weight: 900; padding: 4px 14px; border-radius: 20px; white-space: nowrap; letter-spacing: .5px; }
+  .plan-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .plan-name { font-size: 18px; font-weight: 900; }
+  .plan-price-block { text-align: right; }
+  .plan-price { font-size: 26px; font-weight: 900; color: var(--green); line-height: 1; }
+  .plan-price-old { font-size: 14px; color: var(--muted); text-decoration: line-through; font-weight: 700; }
+  .plan-price-note { font-size: 11px; color: var(--amber); font-weight: 800; }
+  .plan-features { display: flex; flex-direction: column; gap: 8px; }
+  .plan-feature { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; }
+  .plan-feature .tick { color: var(--green); font-size: 16px; }
+  .plan-feature .cross { color: #9ca3af; font-size: 16px; }
+  .plan-feature.locked { color: #9ca3af; }
+  .plan-select-dot { width: 22px; height: 22px; border: 2px solid var(--border); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .plan-card.selected .plan-select-dot { border-color: var(--green); background: var(--green); }
+  .plan-card.selected .plan-select-dot::after { content: ''; width: 8px; height: 8px; background: white; border-radius: 50%; }
+
+  .payment-section { padding: 0 20px 20px; }
+  .payment-title { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 12px; }
+  .payment-methods { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .pay-btn { background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 12px 8px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; cursor: pointer; text-align: center; transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text); }
+  .pay-btn.selected { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+  .pay-btn .pay-icon { font-size: 22px; }
+  .timer-pill { background: #fef3c7; border: 2px solid #fde68a; border-radius: var(--radius-sm); padding: 10px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .timer-text { font-size: 13px; font-weight: 800; color: #92400e; flex: 1; }
+  .timer-count { font-size: 18px; font-weight: 900; color: #d97706; font-variant-numeric: tabular-nums; }
+
+  /* PAYMENT SUCCESS */
+  .success-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; align-items: center; justify-content: center; }
+  .success-overlay.active { display: flex; }
+  .success-card { background: white; border-radius: var(--radius); padding: 36px 28px; text-align: center; width: 320px; animation: popIn .4s ease; }
+  @keyframes popIn { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
+  .success-icon { font-size: 64px; margin-bottom: 12px; }
+  .success-title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--green); margin-bottom: 8px; }
+  .success-msg { font-size: 14px; color: var(--muted); font-weight: 600; margin-bottom: 24px; line-height: 1.6; }
+
+  /* ── HOME ── */
+  .home-hero { background: linear-gradient(160deg, #2d8a5e 0%, #1d6644 100%); padding: 28px 24px 40px; color: white; }
+  .home-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .home-greeting { font-size: 13px; opacity: .75; font-weight: 600; }
+  .home-name { font-size: 20px; font-weight: 900; margin-top: 2px; }
+  .home-avatar { width: 44px; height: 44px; background: rgba(255,255,255,.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; }
+  .premium-badge { background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.3); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
+  .home-actions { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .btn-main { background: var(--green); color: white; border: none; border-radius: var(--radius); padding: 18px 20px; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 16px rgba(45,138,94,.3); transition: transform .15s; }
+  .btn-main:active { transform: scale(.97); }
+  .btn-main .icon { font-size: 24px; }
+  .btn-main .label-sub { font-size: 11px; font-weight: 600; opacity: .8; display: block; }
+  .btn-secondary { background: white; color: var(--green); border: 2px solid var(--border); border-radius: var(--radius); padding: 15px 20px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 14px; }
+  .btn-secondary .icon { font-size: 20px; }
+  .score-pill { background: var(--green-pale); border: 2px solid var(--border); border-radius: 14px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; color: var(--green); }
+
+  /* UPGRADE BANNER */
+  .upgrade-banner { background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: var(--radius); padding: 16px 18px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0 20px; }
+  .upgrade-banner-text strong { font-size: 14px; font-weight: 900; color: white; display: block; }
+  .upgrade-banner-text span { font-size: 12px; color: rgba(255,255,255,.8); font-weight: 600; }
+  .upgrade-arrow { margin-left: auto; color: white; font-size: 20px; }
+
+  /* ── CASE LIBRARY ── */
+  .section-title { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 18px 20px 8px; }
+  .case-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+  .case-card { background: white; border-radius: var(--radius-sm); border: 2px solid var(--border); padding: 12px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: border-color .15s, transform .1s; }
+  .case-card:active { transform: scale(.98); border-color: var(--green); }
+  .case-card.locked { opacity: .6; cursor: default; }
+  .case-animal { font-size: 26px; width: 42px; height: 42px; background: var(--green-pale); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .case-info { flex: 1; }
+  .case-info strong { font-size: 14px; font-weight: 800; display: block; }
+  .case-info span { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .case-done { color: var(--green); font-size: 16px; }
+  .lock-icon { font-size: 16px; color: var(--muted); }
+
+  /* ── CASE SCREENS ── */
+  .case-scene { background: linear-gradient(180deg, #e8f7f1 0%, #d0efe3 100%); padding: 28px 20px; text-align: center; position: relative; overflow: hidden; }
+  .scene-bg { position: absolute; inset: 0; opacity: .06; background: repeating-linear-gradient(45deg, #2d8a5e 0px, #2d8a5e 2px, transparent 2px, transparent 20px); }
+  .animal-display { position: relative; z-index: 1; }
+  .animal-emoji { font-size: 80px; display: block; filter: drop-shadow(0 8px 16px rgba(0,0,0,.15)); animation: breathe 3s ease-in-out infinite; }
+  @keyframes breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+  .animal-status-tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .status-tag { background: white; border: 2px solid var(--border); border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 700; }
+  .status-tag.critical { border-color: var(--red); color: var(--red); background: var(--red-pale); }
+  .status-tag.warning { border-color: var(--amber); color: #92400e; background: #fffbeb; }
+  .owner-bubble { background: white; border: 2px solid var(--border); border-radius: 16px 16px 16px 4px; padding: 14px 16px; margin: 16px 20px 0; position: relative; box-shadow: var(--shadow); }
+  .owner-bubble::before { content: '👨‍🌾'; font-size: 26px; position: absolute; left: -14px; bottom: -8px; }
+  .owner-text { font-size: 13px; line-height: 1.6; font-style: italic; font-weight: 600; }
+  .params-grid { padding: 14px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .param-card { background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .param-label { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .param-value { font-size: 17px; font-weight: 900; margin-top: 4px; }
+  .param-value.abnormal { color: var(--red); }
+  .param-card.full { grid-column: 1 / -1; }
+  .dx-options { padding: 12px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .dx-option { background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 15px 16px; font-size: 14px; font-weight: 700; cursor: pointer; text-align: left; font-family: 'Nunito', sans-serif; transition: all .15s; display: flex; align-items: center; gap: 10px; }
+  .dx-option.correct { background: #dcfce7; border-color: #22c55e; color: #15803d; }
+  .dx-option.wrong { background: var(--red-pale); border-color: var(--red); color: #b91c1c; }
+  .hint-box { background: #fffbeb; border: 2px solid var(--amber); border-radius: var(--radius-sm); margin: 0 20px; padding: 12px 14px; font-size: 13px; font-weight: 700; color: #78350f; display: flex; gap: 10px; align-items: flex-start; }
+  .med-categories { padding: 0 20px; display: flex; flex-direction: column; gap: 14px; }
+  .med-category-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+  .med-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .med-chip { background: white; border: 2px solid var(--border); border-radius: 20px; padding: 7px 13px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; transition: all .15s; }
+  .med-chip.selected { background: var(--green); border-color: var(--green); color: white; }
+  .dose-section { padding: 14px 20px; }
+  .dose-card { background: var(--blue-pale); border: 2px solid #bfdbfe; border-radius: var(--radius-sm); padding: 14px; }
+  .dose-card h4 { font-size: 13px; font-weight: 800; color: #1e40af; margin-bottom: 8px; }
+  .dose-row { display: flex; justify-content: space-between; font-size: 13px; margin: 4px 0; }
+  .dose-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .dose-btn { background: white; border: 2px solid #bfdbfe; border-radius: 8px; padding: 7px 13px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: 'Nunito', sans-serif; color: #1e40af; }
+  .dose-btn.selected { background: var(--blue); border-color: var(--blue); color: white; }
+  .route-section { padding: 0 20px 14px; }
+  .route-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .route-btn { background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 11px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: 'Nunito', sans-serif; text-align: center; }
+  .route-btn.selected { background: var(--green); border-color: var(--green); color: white; }
+  .selected-meds-bar { background: var(--green-pale); border-bottom: 2px solid var(--border); padding: 10px 20px; }
+  .selected-meds-bar h4 { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .selected-meds-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .selected-tag { background: var(--green); color: white; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
+
+  /* INJECTION ANIM */
+  .inject-anim { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
+  .inject-anim.active { display: flex; }
+  .syringe { font-size: 64px; animation: inject 2s ease forwards; }
+  @keyframes inject { 0%{transform:translateX(-60px) rotate(-45deg);opacity:0} 30%{transform:translateX(0) rotate(-45deg);opacity:1} 70%{transform:translateX(10px) rotate(-45deg)} 100%{transform:translateX(0) rotate(-45deg);opacity:0} }
+  .inject-text { color: white; font-size: 16px; font-weight: 800; }
+
+  /* OUTCOME */
+  .outcome-scene { padding: 36px 24px; text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .outcome-animal { font-size: 90px; margin-bottom: 14px; }
+  .outcome-animal.recovered { animation: celebrate 1s ease-in-out; }
+  .outcome-animal.died { animation: collapse .8s ease forwards; }
+  @keyframes celebrate { 0%,100%{transform:scale(1)} 25%{transform:scale(1.15) rotate(-5deg)} 75%{transform:scale(1.15) rotate(5deg)} }
+  @keyframes collapse { 0%{transform:rotate(0)} 100%{transform:rotate(90deg) translateX(20px);opacity:.5;} }
+  .outcome-title { font-family: 'DM Serif Display', serif; font-size: 26px; margin-bottom: 6px; }
+  .outcome-title.success { color: var(--green); }
+  .outcome-title.fail { color: var(--red); }
+  .outcome-msg { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 20px; max-width: 280px; line-height: 1.6; }
+  .score-breakdown { background: white; border: 2px solid var(--border); border-radius: var(--radius); padding: 18px; width: 100%; margin-bottom: 20px; }
+  .score-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 700; }
+  .score-row:last-child { border-bottom: none; font-size: 16px; font-weight: 900; color: var(--green); }
+  .score-pts.full { color: var(--green); } .score-pts.partial { color: var(--amber); } .score-pts.zero { color: var(--red); }
+
+  /* SCORES */
+  .total-score-ring { width: 130px; height: 130px; margin: 0 auto 16px; position: relative; }
+  .ring-svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--border); stroke-width: 12; }
+  .ring-fill { fill: none; stroke: var(--green); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+  .ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring-num { font-size: 30px; font-weight: 900; color: var(--green); line-height: 1; }
+  .ring-label { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
+  .score-history { padding: 0 20px; display: flex; flex-direction: column; gap: 8px; }
+  .score-history-item { background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; display: flex; align-items: center; gap: 10px; }
+  .shi-animal { font-size: 22px; } .shi-info { flex: 1; }
+  .shi-name { font-size: 13px; font-weight: 800; } .shi-score { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .shi-badge { background: var(--green-pale); color: var(--green); font-weight: 900; font-size: 14px; padding: 3px 9px; border-radius: 8px; border: 2px solid var(--border); }
+
+  /* PROFILE */
+  .profile-hero { background: linear-gradient(160deg, #2d8a5e, #1d6644); padding: 32px 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .profile-avatar { width: 72px; height: 72px; background: rgba(255,255,255,.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; border: 3px solid rgba(255,255,255,.4); }
+  .profile-name { font-size: 20px; font-weight: 900; color: white; }
+  .profile-role { font-size: 13px; color: rgba(255,255,255,.7); font-weight: 600; }
+  .profile-content { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .profile-card { background: white; border: 2px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .profile-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .profile-row:last-child { border-bottom: none; }
+  .profile-row-icon { font-size: 20px; width: 36px; }
+  .profile-row-info { flex: 1; }
+  .profile-row-info strong { font-size: 14px; font-weight: 800; display: block; }
+  .profile-row-info span { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .profile-row-arrow { color: var(--muted); font-size: 16px; }
+  .plan-status-card { background: linear-gradient(135deg, #2d8a5e, #1d6644); border-radius: var(--radius); padding: 18px; color: white; display: flex; align-items: center; gap: 14px; }
+  .plan-status-icon { font-size: 32px; }
+  .plan-status-info strong { font-size: 16px; font-weight: 900; display: block; }
+  .plan-status-info span { font-size: 12px; opacity: .75; font-weight: 600; }
+  .logout-btn { background: var(--red-pale); color: var(--red); border: 2px solid #fca5a5; border-radius: var(--radius-sm); padding: 14px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%; text-align: center; }
+
+  /* ABOUT */
+  .about-content { padding: 20px; }
+  .about-card { background: white; border: 2px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
+  .about-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 8px; color: var(--green); }
+  .about-card p { font-size: 13px; line-height: 1.7; color: var(--muted); font-weight: 600; }
+
+  /* UTILS */
+  .spacer { height: 16px; }
+  .pad { padding: 0 20px; }
+  .scroll-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .scroll-content::-webkit-scrollbar { width: 3px; }
+  .scroll-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .btn-action.red { background: var(--red); }
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1a2e25; color: white; padding: 12px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; z-index: 999; white-space: nowrap; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .lock-overlay { position: absolute; inset: 0; background: rgba(255,255,255,.85); border-radius: var(--radius-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; z-index: 10; }
+  .lock-overlay-icon { font-size: 28px; }
+  .lock-overlay-text { font-size: 12px; font-weight: 800; color: var(--green); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SPLASH -->
+  <div class="screen active" id="screen-splash">
+    <div class="splash-logo">🏥</div>
+    <div class="splash-name">VetLearn</div>
+    <div class="splash-sub">Clinical Case Practice</div>
+    <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="screen" id="screen-login">
+    <div class="auth-hero">
+      <div class="logo">🏥</div>
+      <h1>Welcome to VetLearn</h1>
+      <p>Clinical case practice for vet students</p>
+    </div>
+    <div class="auth-body">
+      <div class="field-group">
+        <div class="field-label">Email Address</div>
+        <input class="field-input" type="email" id="login-email" placeholder="you@example.com">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Password</div>
+        <input class="field-input" type="password" id="login-password" placeholder="Enter password">
+      </div>
+      <div class="forgot-link" onclick="showScreen('forgot')">Forgot password?</div>
+      <button class="btn-action" onclick="doLogin()">Login</button>
+      <div class="divider">or</div>
+      <button class="btn-outline" onclick="showOTPEntry('login')">📱 Login with Phone OTP</button>
+      <div class="auth-switch">Don't have an account? <a onclick="showScreen('signup')">Sign Up</a></div>
+    </div>
+  </div>
+
+  <!-- SIGN UP -->
+  <div class="screen" id="screen-signup">
+    <div class="auth-hero">
+      <div class="logo">🏥</div>
+      <h1>Create Account</h1>
+      <p>Join thousands of vet students</p>
+    </div>
+    <div class="auth-body">
+      <div class="field-group">
+        <div class="field-label">Full Name</div>
+        <input class="field-input" type="text" id="signup-name" placeholder="Dr. Your Name">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Email Address</div>
+        <input class="field-input" type="email" id="signup-email" placeholder="you@example.com">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Password</div>
+        <input class="field-input" type="password" id="signup-password" placeholder="Create password">
+      </div>
+      <button class="btn-action" onclick="doSignup()">Create Account</button>
+      <div class="divider">or</div>
+      <button class="btn-outline" onclick="showOTPEntry('signup')">📱 Sign up with Phone OTP</button>
+      <div class="auth-switch">Already have an account? <a onclick="showScreen('login')">Login</a></div>
+    </div>
+  </div>
+
+  <!-- PHONE OTP ENTRY -->
+  <div class="screen" id="screen-phone">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('login')">←</button>
+      <h2>Phone Number</h2>
+    </div>
+    <div class="auth-body">
+      <div style="font-size:14px;font-weight:700;color:var(--muted);line-height:1.6">Enter your mobile number. We'll send a 6-digit OTP to verify.</div>
+      <div class="field-group">
+        <div class="field-label">Mobile Number</div>
+        <div class="field-input-row">
+          <div class="phone-prefix">🇮🇳 +91</div>
+          <input class="field-input" type="tel" id="phone-number" placeholder="9876543210" maxlength="10">
+        </div>
+      </div>
+      <button class="btn-action" onclick="sendOTP()">Send OTP</button>
+    </div>
+  </div>
+
+  <!-- OTP VERIFY -->
+  <div class="screen" id="screen-otp">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('phone')">←</button>
+      <h2>Verify OTP</h2>
+    </div>
+    <div class="auth-body">
+      <div class="otp-info">OTP sent to +91 <span id="otp-phone-display">XXXXXXXXXX</span></div>
+      <div style="font-size:14px;font-weight:700;color:var(--muted)">Enter the 6-digit code</div>
+      <div class="otp-row">
+        <input class="otp-input" type="number" maxlength="1" oninput="otpMove(this,0)">
+        <input class="otp-input" type="number" maxlength="1" oninput="otpMove(this,1)">
+        <input class="otp-input" type="number" maxlength="1" oninput="otpMove(this,2)">
+        <input class="otp-input" type="number" maxlength="1" oninput="otpMove(this,3)">
+        <input class="otp-input" type="number" maxlength="1" oninput="otpMove(this,4)">
+        <input class="otp-input" type="number" maxlength="1" oninput="otpMove(this,5)">
+      </div>
+      <button class="btn-action" onclick="verifyOTP()">Verify & Continue</button>
+      <div class="resend-row">Didn't receive? <span onclick="showToast('OTP resent!')">Resend OTP</span></div>
+      <div style="background:var(--green-pale);border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-size:12px;font-weight:700;color:var(--green);text-align:center">
+        🔐 Demo: Enter any 6 digits to continue
+      </div>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD -->
+  <div class="screen" id="screen-forgot">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('login')">←</button>
+      <h2>Forgot Password</h2>
+    </div>
+    <div class="auth-body">
+      <div style="font-size:14px;font-weight:700;color:var(--muted);line-height:1.6">Enter your email address and we'll send you a link to reset your password.</div>
+      <div class="field-group">
+        <div class="field-label">Email Address</div>
+        <input class="field-input" type="email" placeholder="you@example.com">
+      </div>
+      <button class="btn-action" onclick="showToast('Reset link sent to your email!');showScreen('login')">Send Reset Link</button>
+      <button class="btn-outline" onclick="showScreen('login')">Back to Login</button>
+    </div>
+  </div>
+
+  <!-- PROFILE SETUP -->
+  <div class="screen" id="screen-profile-setup">
+    <div class="auth-hero">
+      <div class="logo">👤</div>
+      <h1>Your Profile</h1>
+      <p>Tell us a bit about yourself</p>
+    </div>
+    <div class="auth-body" style="gap:20px">
+      <div class="field-group">
+        <div class="field-label">Full Name</div>
+        <input class="field-input" type="text" id="profile-name-input" placeholder="Dr. Your Name">
+      </div>
+      <div class="field-group">
+        <div class="field-label">I am a...</div>
+        <div class="role-options">
+          <div class="role-card selected" onclick="selectRole(this,'Vet Student')">
+            <div class="role-icon">🎓</div>
+            <div class="role-info"><strong>Vet Student</strong><span>Currently studying veterinary medicine</span></div>
+            <div class="role-check">✅</div>
+          </div>
+          <div class="role-card" onclick="selectRole(this,'Vet Doctor')">
+            <div class="role-icon">🩺</div>
+            <div class="role-info"><strong>Vet Doctor</strong><span>Licensed veterinary practitioner</span></div>
+            <div class="role-check">✅</div>
+          </div>
+          <div class="role-card" onclick="selectRole(this,'Paravet')">
+            <div class="role-icon">💊</div>
+            <div class="role-info"><strong>Paravet</strong><span>Veterinary paraprofessional</span></div>
+            <div class="role-check">✅</div>
+          </div>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">College / Clinic Name <span style="font-weight:600;text-transform:none">(optional)</span></div>
+        <input class="field-input" type="text" id="profile-college" placeholder="e.g. TANUVAS, Chennai">
+      </div>
+      <button class="btn-action" onclick="saveProfile()">Continue →</button>
+    </div>
+  </div>
+
+  <!-- SUBSCRIBE -->
+  <div class="screen" id="screen-subscribe">
+    <div class="sub-hero">
+      <div style="font-size:36px;margin-bottom:8px">🎓</div>
+      <h1>Choose Your Plan</h1>
+      <p>Unlock all 20 clinical cases & full drug info</p>
+    </div>
+    <div class="scroll-content">
+      <div class="sub-body">
+        <div class="timer-pill">
+          <span style="font-size:20px">⏰</span>
+          <div class="timer-text">Launch offer ends in</div>
+          <div class="timer-count" id="offer-timer">23:47:12</div>
+        </div>
+
+        <!-- FREE PLAN -->
+        <div class="plan-card" id="plan-free" onclick="selectPlan('free')">
+          <div class="plan-header">
+            <div>
+              <div class="plan-name">Free Plan</div>
+              <div style="font-size:12px;color:var(--muted);font-weight:600;margin-top:2px">Always free</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="plan-price" style="font-size:22px">₹0</div>
+              <div class="plan-select-dot"></div>
+            </div>
+          </div>
+          <div class="plan-features">
+            <div class="plan-feature"><span class="tick">✅</span> Access to 5 disease cases</div>
+            <div class="plan-feature"><span class="tick">✅</span> Basic drug information</div>
+            <div class="plan-feature locked"><span class="cross">🔒</span> All 20 cases locked</div>
+            <div class="plan-feature locked"><span class="cross">🔒</span> Full dosage calculator locked</div>
+            <div class="plan-feature locked"><span class="cross">🔒</span> Treatment protocols locked</div>
+          </div>
+        </div>
+
+        <!-- PREMIUM PLAN -->
+        <div class="plan-card premium selected" id="plan-premium" onclick="selectPlan('premium')">
+          <div class="plan-badge">⭐ MOST POPULAR – LAUNCH OFFER</div>
+          <div class="plan-header" style="margin-top:8px">
+            <div>
+              <div class="plan-name">Premium Plan</div>
+              <div style="font-size:12px;color:var(--amber);font-weight:800;margin-top:2px">🔥 Lifetime Access</div>
+            </div>
+            <div style="text-align:right;display:flex;align-items:center;gap:10px">
+              <div>
+                <div class="plan-price">₹299</div>
+                <div class="plan-price-old">₹999</div>
+                <div class="plan-price-note">You save 70%!</div>
+              </div>
+              <div class="plan-select-dot"></div>
+            </div>
+          </div>
+          <div class="plan-features">
+            <div class="plan-feature"><span class="tick">✅</span> All 20 clinical cases</div>
+            <div class="plan-feature"><span class="tick">✅</span> Full drug dosage calculator</div>
+            <div class="plan-feature"><span class="tick">✅</span> Complete treatment protocols</div>
+            <div class="plan-feature"><span class="tick">✅</span> Detailed case examples</div>
+            <div class="plan-feature"><span class="tick">✅</span> Lifetime access — no monthly fee</div>
+            <div class="plan-feature"><span class="tick">✅</span> All future cases included</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="payment-section">
+        <div id="payment-area">
+          <div class="payment-title">Payment Method</div>
+          <div class="payment-methods">
+            <button class="pay-btn selected" id="pay-upi" onclick="selectPayMethod('upi')"><span class="pay-icon">📱</span>UPI</button>
+            <button class="pay-btn" id="pay-card" onclick="selectPayMethod('card')"><span class="pay-icon">💳</span>Card</button>
+            <button class="pay-btn" id="pay-store" onclick="selectPayMethod('store')"><span class="pay-icon">🏪</span>Play Store</button>
+          </div>
+          <div id="upi-fields">
+            <div class="field-group" style="margin-bottom:12px">
+              <div class="field-label">UPI ID</div>
+              <input class="field-input" type="text" placeholder="yourname@upi">
+            </div>
+          </div>
+          <div id="card-fields" style="display:none">
+            <div class="field-group" style="margin-bottom:8px">
+              <div class="field-label">Card Number</div>
+              <input class="field-input" type="text" placeholder="1234 5678 9012 3456">
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <div class="field-group" style="flex:1">
+                <div class="field-label">Expiry</div>
+                <input class="field-input" type="text" placeholder="MM/YY">
+              </div>
+              <div class="field-group" style="flex:1">
+                <div class="field-label">CVV</div>
+                <input class="field-input" type="text" placeholder="123">
+              </div>
+            </div>
+          </div>
+          <div id="store-fields" style="display:none">
+            <div style="background:var(--green-pale);border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:13px;font-weight:700;color:var(--green);margin-bottom:12px">
+              You'll be redirected to Google Play to complete purchase securely.
+            </div>
+          </div>
+        </div>
+        <div id="free-cta" style="display:none">
+          <div style="background:var(--green-pale);border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:13px;font-weight:700;color:var(--green);margin-bottom:12px">
+            Free plan gives you access to 5 cases. Upgrade anytime!
+          </div>
+        </div>
+        <button class="btn-action" id="pay-btn" onclick="processPayment()">Pay ₹299 – Get Lifetime Access</button>
+        <div style="text-align:center;margin-top:12px;font-size:12px;font-weight:700;color:var(--muted)">🔒 Secure payment · No auto-renewal · Cancel anytime</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen" id="screen-home">
+    <div class="home-hero">
+      <div class="home-top">
+        <div>
+          <div class="home-greeting">Good day,</div>
+          <div class="home-name" id="home-username">Doctor 👋</div>
+        </div>
+        <div class="home-avatar" onclick="showScreen('profile')">👤</div>
+      </div>
+      <div id="home-plan-badge">
+        <div class="premium-badge">⭐ Premium Member</div>
+      </div>
+    </div>
+    <div class="home-actions">
+      <button class="btn-main" onclick="startRandomCase()">
+        <span class="icon">🩺</span>
+        <span>Start Case<span class="label-sub">Random clinical case</span></span>
+      </button>
+      <button class="btn-secondary" onclick="showScreen('library')">
+        <span class="icon">📚</span> Case Library (20 Cases)
+      </button>
+      <button class="btn-secondary" onclick="showScreen('scores')">
+        <span class="icon">🏆</span> Clinical Score
+      </button>
+      <button class="btn-secondary" onclick="showScreen('about')">
+        <span class="icon">ℹ️</span> About
+      </button>
+      <div id="upgrade-banner-home" style="display:none">
+        <div class="upgrade-banner" onclick="showScreen('subscribe')">
+          <span style="font-size:24px">⭐</span>
+          <div class="upgrade-banner-text">
+            <strong>Upgrade to Premium</strong>
+            <span>₹299 lifetime · Save 70%</span>
+          </div>
+          <span class="upgrade-arrow">→</span>
+        </div>
+      </div>
+      <div class="score-pill">
+        <span style="font-size:20px">⭐</span>
+        <span>Total: <strong id="total-score-home">0</strong> pts &nbsp;|&nbsp; Cases: <strong id="cases-done-home">0</strong>/20</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIBRARY -->
+  <div class="screen" id="screen-library">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('home')">←</button>
+      <h2>Case Library</h2>
+    </div>
+    <div class="scroll-content">
+      <div class="section-title">🐕 Dog Cases</div>
+      <div class="case-list" id="list-dog"></div>
+      <div class="section-title">🐄 Livestock Cases</div>
+      <div class="case-list" id="list-livestock"></div>
+      <div class="section-title">🐐 Small Ruminants</div>
+      <div class="case-list" id="list-ruminant"></div>
+      <div class="section-title">🐔 Poultry Cases</div>
+      <div class="case-list" id="list-poultry"></div>
+      <div class="section-title">💉 Preventive Cases</div>
+      <div class="case-list" id="list-preventive"></div>
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- CASE INTRO -->
+  <div class="screen" id="screen-intro">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('home')">←</button>
+      <h2 id="intro-title">Case Introduction</h2>
+      <span class="step-badge">Step 1/4</span>
+    </div>
+    <div class="scroll-content">
+      <div class="case-scene">
+        <div class="scene-bg"></div>
+        <div class="animal-display">
+          <span class="animal-emoji" id="intro-animal">🐕</span>
+          <div class="animal-status-tags" id="intro-tags"></div>
+        </div>
+      </div>
+      <div class="owner-bubble">
+        <div class="owner-text" id="intro-dialogue"></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="pad"><button class="btn-action" onclick="showScreen('params')">📋 Take History</button></div>
+    </div>
+  </div>
+
+  <!-- PARAMS -->
+  <div class="screen" id="screen-params">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('intro')">←</button>
+      <h2>Health Parameters</h2>
+      <span class="step-badge">Step 2/4</span>
+    </div>
+    <div class="scroll-content">
+      <div class="params-grid" id="params-grid"></div>
+      <div class="spacer"></div>
+      <div class="pad"><button class="btn-action" onclick="showScreen('diagnosis')">🔬 Proceed to Diagnosis</button></div>
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- DIAGNOSIS -->
+  <div class="screen" id="screen-diagnosis">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('params')">←</button>
+      <h2>Select Diagnosis</h2>
+      <span class="step-badge">Step 3/4</span>
+    </div>
+    <div class="scroll-content">
+      <div style="padding:14px 20px 6px;font-size:13px;font-weight:700;color:var(--muted)">Based on history and clinical signs, what is your diagnosis?</div>
+      <div class="dx-options" id="dx-options"></div>
+      <div class="hint-box" id="hint-box" style="display:none">
+        <span style="font-size:18px">💡</span><span id="hint-text"></span>
+      </div>
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- TREATMENT -->
+  <div class="screen" id="screen-treatment">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('diagnosis')">←</button>
+      <h2>Treatment</h2>
+      <span class="step-badge">Step 4/4</span>
+    </div>
+    <div class="scroll-content">
+      <div id="selected-meds-bar" class="selected-meds-bar" style="display:none">
+        <h4>Selected Medicines</h4>
+        <div class="selected-meds-tags" id="selected-meds-display"></div>
+      </div>
+      <div class="section-title">Select Medicines</div>
+      <div class="med-categories" id="med-tray"></div>
+      <div class="dose-section" id="dose-section" style="display:none">
+        <div class="dose-card" id="dose-card"></div>
+      </div>
+      <div class="route-section">
+        <div class="section-title" style="padding:14px 0 8px">Route of Administration</div>
+        <div class="route-options">
+          <button class="route-btn" onclick="selectRoute('IM')">💉 IM</button>
+          <button class="route-btn" onclick="selectRoute('IV')">🩸 IV</button>
+          <button class="route-btn" onclick="selectRoute('SC')">💉 SC</button>
+          <button class="route-btn" onclick="selectRoute('Oral')">💊 Oral</button>
+          <button class="route-btn" onclick="selectRoute('Topical')">🧴 Topical</button>
+        </div>
+      </div>
+      <div class="pad"><button class="btn-action" onclick="submitTreatment()">✅ Treat Animal</button></div>
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- OUTCOME -->
+  <div class="screen" id="screen-outcome">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('home')">🏠</button>
+      <h2>Case Outcome</h2>
+    </div>
+    <div class="outcome-scene">
+      <div class="outcome-animal" id="outcome-animal">🐕</div>
+      <div class="outcome-title" id="outcome-title">Animal Recovered!</div>
+      <div class="outcome-msg" id="outcome-msg"></div>
+      <div class="score-breakdown" id="score-breakdown"></div>
+      <button class="btn-action" onclick="startRandomCase()">🩺 Next Case</button>
+      <div style="height:10px"></div>
+      <button class="btn-outline" style="width:100%;justify-content:center;margin-top:8px" onclick="showScreen('home')">🏠 Home</button>
+    </div>
+  </div>
+
+  <!-- SCORES -->
+  <div class="screen" id="screen-scores">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('home')">←</button>
+      <h2>Clinical Score</h2>
+    </div>
+    <div class="scroll-content">
+      <div style="padding:24px 20px;text-align:center">
+        <div class="total-score-ring">
+          <svg class="ring-svg" viewBox="0 0 130 130" width="130" height="130">
+            <circle class="ring-bg" cx="65" cy="65" r="50"/>
+            <circle class="ring-fill" id="score-ring" cx="65" cy="65" r="50" stroke-dasharray="314.2" stroke-dashoffset="314.2"/>
+          </svg>
+          <div class="ring-text">
+            <div class="ring-num" id="score-ring-num">0</div>
+            <div class="ring-label">Avg Score</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:20px;justify-content:center;margin-top:8px">
+          <div style="text-align:center"><div style="font-size:22px;font-weight:900;color:var(--green)" id="sc-cases">0</div><div style="font-size:10px;font-weight:800;color:var(--muted)">CASES</div></div>
+          <div style="text-align:center"><div style="font-size:22px;font-weight:900;color:var(--green)" id="sc-total">0</div><div style="font-size:10px;font-weight:800;color:var(--muted)">TOTAL PTS</div></div>
+          <div style="text-align:center"><div style="font-size:22px;font-weight:900;color:var(--green)" id="sc-best">0</div><div style="font-size:10px;font-weight:800;color:var(--muted)">BEST</div></div>
+        </div>
+      </div>
+      <div class="section-title">Case History</div>
+      <div class="score-history" id="score-history-list">
+        <div style="text-align:center;padding:24px;color:var(--muted);font-weight:700">No cases completed yet</div>
+      </div>
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="screen-profile">
+    <div class="profile-hero">
+      <div class="profile-avatar">👤</div>
+      <div class="profile-name" id="profile-display-name">Dr. User</div>
+      <div class="profile-role" id="profile-display-role">Vet Student</div>
+    </div>
+    <div class="scroll-content">
+      <div class="profile-content">
+        <div id="profile-plan-status" class="plan-status-card">
+          <div class="plan-status-icon">⭐</div>
+          <div class="plan-status-info">
+            <strong>Premium Member</strong>
+            <span>Lifetime access · All 20 cases unlocked</span>
+          </div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-row">
+            <div class="profile-row-icon">📧</div>
+            <div class="profile-row-info"><strong>Email</strong><span id="profile-email-display">user@example.com</span></div>
+          </div>
+          <div class="profile-row">
+            <div class="profile-row-icon">🎓</div>
+            <div class="profile-row-info"><strong>Role</strong><span id="profile-role-display">Vet Student</span></div>
+          </div>
+          <div class="profile-row">
+            <div class="profile-row-icon">🏫</div>
+            <div class="profile-row-info"><strong>College / Clinic</strong><span id="profile-college-display">Not set</span></div>
+          </div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-row" onclick="showScreen('scores')">
+            <div class="profile-row-icon">🏆</div>
+            <div class="profile-row-info"><strong>My Scores</strong><span>View clinical score history</span></div>
+            <div class="profile-row-arrow">›</div>
+          </div>
+          <div class="profile-row" onclick="showScreen('subscribe')">
+            <div class="profile-row-icon">⭐</div>
+            <div class="profile-row-info"><strong>Subscription</strong><span>Manage your plan</span></div>
+            <div class="profile-row-arrow">›</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">🚪 Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="screen" id="screen-about">
+    <div class="header">
+      <button class="header-back" onclick="showScreen('home')">←</button>
+      <h2>About VetLearn</h2>
+    </div>
+    <div class="scroll-content">
+      <div class="about-content">
+        <div class="about-card"><h3>🎯 Purpose</h3><p>VetLearn is a veterinary clinical case simulator designed for veterinary students, doctors, and paravets to practice diagnosis and treatment in a safe, interactive environment.</p></div>
+        <div class="about-card"><h3>📊 Scoring System</h3><p><strong>Diagnosis Accuracy</strong> — 40 pts<br>Correct 1st try: 40 | With hint: 20<br><br><strong>Drug Selection</strong> — 40 pts<br>All correct: 40 | Partial: 20<br><br><strong>Dose Accuracy</strong> — 20 pts<br>Correct: 20 | Off by one step: 10<br><br><strong>Total per case: 100 pts</strong></p></div>
+        <div class="about-card"><h3>🐾 Cases</h3><p>20 clinical cases covering dogs, cattle, goats, and poultry — including infectious diseases, metabolic conditions, and preventive medicine.</p></div>
+        <div class="about-card"><h3>⚠️ Disclaimer</h3><p>Educational use only. Always consult qualified veterinary professionals for actual clinical decisions.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INJECTION ANIM -->
+  <div class="inject-anim" id="inject-overlay">
+    <div class="syringe">💉</div>
+    <div class="inject-text">Administering treatment...</div>
+  </div>
+
+  <!-- PAYMENT SUCCESS -->
+  <div class="success-overlay" id="payment-success">
+    <div class="success-card">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Payment Successful!</div>
+      <div class="success-msg">Welcome to VetLearn Premium! All 20 cases are now unlocked. Happy learning!</div>
+      <button class="btn-action" onclick="afterPayment()">Start Learning →</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+// ============ CASE DATA ============
+const CASES = [
+  { id:1,group:'dog',title:'Pyrexia',animal:'🐕',animalName:'Dog',weight:18,tags:[{label:'Fever',type:'critical'},{label:'Dull',type:'warning'},{label:'Hot to touch',type:'warning'}],dialogue:'"Doctor, my dog is very dull and feels very hot since yesterday."',params:[{label:'Body Weight',value:'18 kg'},{label:'Temperature',value:'104°F',abnormal:true},{label:'Heart Rate',value:'110 bpm',abnormal:true},{label:'Respiration',value:'28/min'},{label:'Appetite',value:'Reduced'},{label:'Vaccination',value:'Up to date'},{label:'Deworming',value:'3 months ago'},{label:'Duration',value:'1 day',full:true}],dxOptions:['Pyrexia','Parvovirus','Canine Distemper','Gastroenteritis'],correctDx:'Pyrexia',hint:'Focus on the high temperature and dull behavior without gastrointestinal signs.',correctMeds:['Meloxicam','Enrofloxacin'],correctRoute:'IM',correctDose:90,doseOptions:[45,90,180,360],drugForDose:'Enrofloxacin',dosePerKg:5 },
+  { id:2,group:'dog',title:'Vomiting / Gastritis',animal:'🐕',animalName:'Dog',weight:20,tags:[{label:'Vomiting',type:'critical'},{label:'Weakness',type:'warning'},{label:'Not Eating',type:'warning'}],dialogue:'"Doctor, my dog vomited three times today and is not eating at all."',params:[{label:'Body Weight',value:'20 kg'},{label:'Temperature',value:'102°F'},{label:'Heart Rate',value:'90 bpm'},{label:'Respiration',value:'22/min'},{label:'Vomiting',value:'3x today',abnormal:true},{label:'Appetite',value:'None',abnormal:true},{label:'Dehydration',value:'Mild'},{label:'Duration',value:'1 day',full:true}],dxOptions:['Vomiting / Gastritis','Parvovirus','Constipation','UTI'],correctDx:'Vomiting / Gastritis',hint:'No fever, no bloody stool — classic vomiting without systemic infection.',correctMeds:['Ondansetron','Pantoprazole','Ringer lactate'],correctRoute:'IV',correctDose:100,doseOptions:[50,100,200,400],drugForDose:'Ondansetron (0.5mg/kg)',dosePerKg:0.5 },
+  { id:3,group:'dog',title:'Diarrhea / Gastroenteritis',animal:'🐕',animalName:'Dog',weight:15,tags:[{label:'Diarrhea',type:'critical'},{label:'Dehydration',type:'warning'},{label:'Weakness',type:'warning'}],dialogue:'"My dog has had loose motions since yesterday and looks very weak."',params:[{label:'Body Weight',value:'15 kg'},{label:'Temperature',value:'103°F',abnormal:true},{label:'Heart Rate',value:'100 bpm'},{label:'Diarrhea',value:'Watery',abnormal:true},{label:'Dehydration',value:'Moderate',abnormal:true},{label:'Appetite',value:'Poor'},{label:'Vaccination',value:'Incomplete'},{label:'Duration',value:'1 day',full:true}],dxOptions:['Diarrhea / Gastroenteritis','Parvovirus','Constipation','Canine Distemper'],correctDx:'Diarrhea / Gastroenteritis',hint:'Watery diarrhea, mild fever, no bloody stool — bacterial gastroenteritis.',correctMeds:['Metoclopramide','ORS','Enrofloxacin'],correctRoute:'Oral',correctDose:75,doseOptions:[37,75,150,300],drugForDose:'Enrofloxacin',dosePerKg:5 },
+  { id:4,group:'dog',title:'Urinary Tract Infection',animal:'🐕',animalName:'Dog',weight:22,tags:[{label:'Frequent urination',type:'critical'},{label:'Pain',type:'warning'}],dialogue:'"Doctor, my dog is passing urine very frequently and looks uncomfortable."',params:[{label:'Body Weight',value:'22 kg'},{label:'Temperature',value:'103.5°F',abnormal:true},{label:'Urination',value:'Frequent',abnormal:true},{label:'Pain',value:'On urination',abnormal:true},{label:'Appetite',value:'Reduced'},{label:'Heart Rate',value:'95 bpm'},{label:'Deworming',value:'Recent'},{label:'Duration',value:'2 days',full:true}],dxOptions:['Urinary Tract Infection','Constipation','Pyrexia','Parvovirus'],correctDx:'Urinary Tract Infection',hint:'Frequent painful urination is the key sign.',correctMeds:['Amoxicillin','Meloxicam'],correctRoute:'Oral',correctDose:110,doseOptions:[55,110,220,440],drugForDose:'Amoxicillin',dosePerKg:5 },
+  { id:5,group:'dog',title:'Constipation',animal:'🐕',animalName:'Dog',weight:16,tags:[{label:'Not defecating',type:'critical'},{label:'Straining',type:'warning'}],dialogue:'"My dog hasn\'t passed stool for two days and keeps straining."',params:[{label:'Body Weight',value:'16 kg'},{label:'Temperature',value:'102°F'},{label:'Defecation',value:'None x 2 days',abnormal:true},{label:'Straining',value:'Yes',abnormal:true},{label:'Appetite',value:'Reduced'},{label:'Heart Rate',value:'80 bpm'},{label:'Abdomen',value:'Tense'},{label:'Duration',value:'2 days',full:true}],dxOptions:['Constipation','Gastroenteritis','Vomiting / Gastritis','UTI'],correctDx:'Constipation',hint:'No defecation for 2 days with straining — focus on the bowel.',correctMeds:['Liquid paraffin','Normal saline'],correctRoute:'Oral',correctDose:80,doseOptions:[40,80,160,320],drugForDose:'Liquid paraffin',dosePerKg:5 },
+  { id:6,group:'dog',title:'Parvovirus Infection',animal:'🐕',animalName:'Puppy',weight:6,tags:[{label:'Bloody diarrhea',type:'critical'},{label:'Severe vomiting',type:'critical'},{label:'Dehydration',type:'warning'}],dialogue:'"Doctor! My puppy has severe vomiting and there is blood in the stool!"',params:[{label:'Body Weight',value:'6 kg'},{label:'Temperature',value:'104.5°F',abnormal:true},{label:'Bloody Diarrhea',value:'Yes',abnormal:true},{label:'Vomiting',value:'Severe',abnormal:true},{label:'Dehydration',value:'Severe',abnormal:true},{label:'Vaccination',value:'None',abnormal:true},{label:'Heart Rate',value:'130 bpm',abnormal:true},{label:'Duration',value:'1 day',full:true}],dxOptions:['Parvovirus Infection','Gastroenteritis','Canine Distemper','Constipation'],correctDx:'Parvovirus Infection',hint:'Bloody diarrhea + vomiting + unvaccinated puppy = hemorrhagic viral disease.',correctMeds:['Ringer lactate','Ondansetron','Enrofloxacin'],correctRoute:'IV',correctDose:30,doseOptions:[15,30,60,120],drugForDose:'Enrofloxacin',dosePerKg:5 },
+  { id:7,group:'dog',title:'Canine Distemper',animal:'🐕',animalName:'Dog',weight:18,tags:[{label:'Nasal discharge',type:'critical'},{label:'Fever',type:'warning'},{label:'Weakness',type:'warning'}],dialogue:'"My dog has nasal discharge, fever, and looks very weak."',params:[{label:'Body Weight',value:'18 kg'},{label:'Temperature',value:'104°F',abnormal:true},{label:'Nasal Discharge',value:'Mucopurulent',abnormal:true},{label:'Eye Discharge',value:'Present',abnormal:true},{label:'Vaccination',value:'None',abnormal:true},{label:'Appetite',value:'Poor'},{label:'CNS Signs',value:'Twitching'},{label:'Duration',value:'3 days',full:true}],dxOptions:['Canine Distemper','Parvovirus Infection','Pyrexia','Skin Infection'],correctDx:'Canine Distemper',hint:'Nasal + eye discharge with CNS signs in unvaccinated dog = systemic viral disease.',correctMeds:['Enrofloxacin','Vitamin B complex','Normal saline'],correctRoute:'IM',correctDose:90,doseOptions:[45,90,180,360],drugForDose:'Enrofloxacin',dosePerKg:5 },
+  { id:8,group:'dog',title:'Skin Infection',animal:'🐕',animalName:'Dog',weight:19,tags:[{label:'Skin lesions',type:'critical'},{label:'Itching',type:'warning'}],dialogue:'"Doctor, my dog keeps scratching and has red skin lesions."',params:[{label:'Body Weight',value:'19 kg'},{label:'Temperature',value:'102.5°F'},{label:'Skin',value:'Red, pustules',abnormal:true},{label:'Itching',value:'Severe',abnormal:true},{label:'Appetite',value:'Normal'},{label:'Vaccination',value:'Up to date'},{label:'Deworming',value:'Recent'},{label:'Duration',value:'4 days',full:true}],dxOptions:['Skin Infection','Pyrexia','Canine Distemper','UTI'],correctDx:'Skin Infection',hint:'Localised skin changes with itching — think dermatological condition.',correctMeds:['Oxytetracycline','Chlorpheniramine maleate'],correctRoute:'Topical',correctDose:95,doseOptions:[47,95,190,380],drugForDose:'Oxytetracycline',dosePerKg:5 },
+  { id:9,group:'dog',title:'Lethargy / Anorexia',animal:'🐕',animalName:'Dog',weight:21,tags:[{label:'Not eating',type:'warning'},{label:'Lethargic',type:'warning'}],dialogue:'"Doctor, my dog has not eaten for two days and just lies around."',params:[{label:'Body Weight',value:'21 kg'},{label:'Temperature',value:'102.8°F'},{label:'Appetite',value:'None x 2 days',abnormal:true},{label:'Activity',value:'Lethargic',abnormal:true},{label:'Heart Rate',value:'78 bpm'},{label:'Stool',value:'Normal'},{label:'Vaccination',value:'Recent'},{label:'Duration',value:'2 days',full:true}],dxOptions:['Lethargy / Anorexia','Parvovirus Infection','Constipation','UTI'],correctDx:'Lethargy / Anorexia',hint:'No specific system involved — think supportive nutritional therapy.',correctMeds:['Vitamin B complex','Normal saline'],correctRoute:'IV',correctDose:105,doseOptions:[52,105,210,420],drugForDose:'Vitamin B complex',dosePerKg:5 },
+  { id:10,group:'dog',title:'Rabies (Preventive)',animal:'🐕',animalName:'Dog',weight:20,tags:[{label:'Unvaccinated',type:'critical'},{label:'Bite incident',type:'warning'}],dialogue:'"Doctor, my dog bit someone yesterday. It was never vaccinated for rabies."',params:[{label:'Body Weight',value:'20 kg'},{label:'Vaccination',value:'None',abnormal:true},{label:'Behavior',value:'Slightly agitated'},{label:'Bite History',value:'Yes',abnormal:true},{label:'Last Seen Normal',value:'2 days ago'},{label:'Appetite',value:'Reduced'},{label:'Observation',value:'Required'},{label:'Duration',value:'Ongoing',full:true}],dxOptions:['Rabies Exposure (Preventive)','Canine Distemper','Pyrexia','Skin Infection'],correctDx:'Rabies Exposure (Preventive)',hint:'Unvaccinated dog that bit someone — focus on public health and prevention.',correctMeds:['Rabies vaccine','Dexamethasone'],correctRoute:'IM',correctDose:100,doseOptions:[50,100,200,400],drugForDose:'Rabies Vaccine',dosePerKg:1 },
+  { id:11,group:'livestock',title:'Mastitis',animal:'🐄',animalName:'Cow',weight:420,tags:[{label:'Udder swollen',type:'critical'},{label:'Abnormal milk',type:'warning'},{label:'Pain',type:'warning'}],dialogue:'"Doctor, my cow\'s udder is very swollen and the milk looks abnormal."',params:[{label:'Body Weight',value:'420 kg'},{label:'Temperature',value:'104°F',abnormal:true},{label:'Udder',value:'Swollen, hot',abnormal:true},{label:'Milk',value:'Watery/clots',abnormal:true},{label:'Appetite',value:'Reduced'},{label:'Milk Yield',value:'Dropped',abnormal:true},{label:'Calving',value:'2 weeks ago'},{label:'Duration',value:'3 days',full:true}],dxOptions:['Mastitis','Milk Fever','Foot and Mouth','Anemia'],correctDx:'Mastitis',hint:'Udder inflammation + abnormal milk after calving = udder infection.',correctMeds:['Ceftriaxone','Meloxicam'],correctRoute:'IM',correctDose:2100,doseOptions:[1050,2100,4200,8400],drugForDose:'Ceftriaxone',dosePerKg:5 },
+  { id:12,group:'livestock',title:'Milk Fever',animal:'🐄',animalName:'Cow',weight:450,tags:[{label:'Cannot stand',type:'critical'},{label:'Recumbent',type:'critical'},{label:'After calving',type:'warning'}],dialogue:'"Doctor, my cow just calved and now she cannot stand up at all!"',params:[{label:'Body Weight',value:'450 kg'},{label:'Temperature',value:'97°F',abnormal:true},{label:'Muscle Tone',value:'Flaccid',abnormal:true},{label:'Recumbency',value:'Yes',abnormal:true},{label:'Calving',value:'6 hours ago',abnormal:true},{label:'Calcium',value:'Low (est.)',abnormal:true},{label:'Heart Rate',value:'55 bpm',abnormal:true},{label:'Duration',value:'Acute',full:true}],dxOptions:['Milk Fever','Mastitis','Anemia','Lameness'],correctDx:'Milk Fever',hint:'Post-calving recumbency + low temperature + flaccid muscles = calcium deficiency.',correctMeds:['Calcium borogluconate'],correctRoute:'IV',correctDose:900,doseOptions:[450,900,1800,3600],drugForDose:'Calcium borogluconate',dosePerKg:2 },
+  { id:13,group:'livestock',title:'Foot and Mouth Disease',animal:'🐄',animalName:'Cow',weight:380,tags:[{label:'Mouth ulcers',type:'critical'},{label:'Lameness',type:'critical'},{label:'Drooling',type:'warning'}],dialogue:'"Doctor, my cow has wounds in her mouth and she can\'t walk properly."',params:[{label:'Body Weight',value:'380 kg'},{label:'Temperature',value:'105°F',abnormal:true},{label:'Mouth',value:'Ulcers/vesicles',abnormal:true},{label:'Feet',value:'Vesicles',abnormal:true},{label:'Lameness',value:'Severe',abnormal:true},{label:'Drooling',value:'Excessive',abnormal:true},{label:'Vaccination',value:'None',abnormal:true},{label:'Duration',value:'2 days',full:true}],dxOptions:['Foot and Mouth Disease','Mastitis','Milk Fever','Anemia'],correctDx:'Foot and Mouth Disease',hint:'Vesicles on mouth AND feet with drooling = highly contagious viral disease.',correctMeds:['Meloxicam','Enrofloxacin'],correctRoute:'IM',correctDose:1900,doseOptions:[950,1900,3800,7600],drugForDose:'Meloxicam',dosePerKg:0.5 },
+  { id:14,group:'livestock',title:'Anemia',animal:'🐐',animalName:'Goat',weight:28,tags:[{label:'Pale gums',type:'critical'},{label:'Weakness',type:'warning'}],dialogue:'"My goat looks very weak and its gums are very pale."',params:[{label:'Body Weight',value:'28 kg'},{label:'Temperature',value:'102°F'},{label:'Mucous Membranes',value:'Very pale',abnormal:true},{label:'Activity',value:'Lethargic',abnormal:true},{label:'Appetite',value:'Poor'},{label:'Deworming',value:'Never',abnormal:true},{label:'Stool',value:'Soft'},{label:'Duration',value:'1 week',full:true}],dxOptions:['Anemia','PPR','Lameness','Milk Fever'],correctDx:'Anemia',hint:'Pale mucous membranes + never dewormed = parasitic anemia.',correctMeds:['Albendazole','Vitamin B complex'],correctRoute:'Oral',correctDose:140,doseOptions:[70,140,280,560],drugForDose:'Albendazole',dosePerKg:5 },
+  { id:15,group:'livestock',title:'Lameness / Hoof Infection',animal:'🐄',animalName:'Cow',weight:400,tags:[{label:'Limping',type:'critical'},{label:'Hoof pain',type:'warning'}],dialogue:'"My cow is limping badly and cannot put weight on her front leg."',params:[{label:'Body Weight',value:'400 kg'},{label:'Temperature',value:'103°F',abnormal:true},{label:'Limb',value:'Swollen hoof',abnormal:true},{label:'Gait',value:'Severely lame',abnormal:true},{label:'Appetite',value:'Normal'},{label:'Heart Rate',value:'85 bpm'},{label:'Hoof',value:'Pus present',abnormal:true},{label:'Duration',value:'4 days',full:true}],dxOptions:['Lameness / Hoof Infection','Milk Fever','Foot and Mouth','Mastitis'],correctDx:'Lameness / Hoof Infection',hint:'Pus in hoof + localized swelling = bacterial hoof infection, not FMD.',correctMeds:['Ketoprofen','Butorphanol'],correctRoute:'IM',correctDose:2000,doseOptions:[1000,2000,4000,8000],drugForDose:'Ketoprofen',dosePerKg:5 },
+  { id:16,group:'ruminant',title:'PPR',animal:'🐐',animalName:'Goat',weight:25,tags:[{label:'Diarrhea',type:'critical'},{label:'Nasal discharge',type:'critical'},{label:'Fever',type:'warning'}],dialogue:'"My goat has diarrhea, runny nose, and very high fever since two days."',params:[{label:'Body Weight',value:'25 kg'},{label:'Temperature',value:'106°F',abnormal:true},{label:'Nasal Discharge',value:'Profuse',abnormal:true},{label:'Diarrhea',value:'Severe',abnormal:true},{label:'Mouth',value:'Erosions present',abnormal:true},{label:'Vaccination',value:'None',abnormal:true},{label:'Appetite',value:'None',abnormal:true},{label:'Duration',value:'2 days',full:true}],dxOptions:['PPR','Anemia','Lameness','Mastitis'],correctDx:'PPR',hint:'High fever + nasal discharge + diarrhea + mouth erosions in goat = major viral disease.',correctMeds:['Enrofloxacin','Ringer lactate'],correctRoute:'IM',correctDose:125,doseOptions:[62,125,250,500],drugForDose:'Enrofloxacin',dosePerKg:5 },
+  { id:17,group:'poultry',title:'Newcastle Disease',animal:'🐔',animalName:'Chickens',weight:2,tags:[{label:'Sudden deaths',type:'critical'},{label:'Respiratory distress',type:'critical'}],dialogue:'"Doctor, my chickens are suddenly dying! There is gasping and respiratory sounds."',params:[{label:'Flock Size',value:'200 birds'},{label:'Mortality',value:'15% in 2 days',abnormal:true},{label:'Respiration',value:'Gasping',abnormal:true},{label:'Nervous Signs',value:'Torticollis',abnormal:true},{label:'Vaccination',value:'None',abnormal:true},{label:'Diarrhea',value:'Green/watery',abnormal:true},{label:'Feed',value:'Reduced intake'},{label:'Duration',value:'2 days',full:true}],dxOptions:['Newcastle Disease',"Marek's Disease",'Constipation','UTI'],correctDx:'Newcastle Disease',hint:'Sudden deaths + respiratory + nervous signs in unvaccinated flock = highly contagious virus.',correctMeds:['Vitamin B complex','ORS'],correctRoute:'Oral',correctDose:10,doseOptions:[5,10,20,40],drugForDose:'Supportive ORS',dosePerKg:5 },
+  { id:18,group:'poultry',title:"Marek's Disease",animal:'🐔',animalName:'Chicken',weight:1.5,tags:[{label:'Paralysis',type:'critical'},{label:'Cannot stand',type:'warning'}],dialogue:'"Doctor, my chickens cannot stand properly and their legs are spread out."',params:[{label:'Age',value:'8–16 weeks'},{label:'Paralysis',value:'Leg/wing',abnormal:true},{label:'Posture',value:'Splits position',abnormal:true},{label:'Mortality',value:'Sporadic'},{label:'Vaccination',value:'MD vaccine not given',abnormal:true},{label:'Appetite',value:'Affected'},{label:'Eye',value:'Gray iris (some)'},{label:'Duration',value:'Gradual onset',full:true}],dxOptions:["Marek's Disease",'Newcastle Disease','Anemia','Constipation'],correctDx:"Marek's Disease",hint:"Gradual leg paralysis in young birds + no MD vaccine = Marek's disease.",correctMeds:['Vitamin B complex','ORS'],correctRoute:'Oral',correctDose:7,doseOptions:[3,7,15,30],drugForDose:'Supportive care',dosePerKg:5 },
+  { id:19,group:'preventive',title:'Deworming Case',animal:'🐕',animalName:'Dog',weight:18,tags:[{label:'Worms in stool',type:'critical'},{label:'Weight loss',type:'warning'}],dialogue:'"Doctor, I can see worms in my dog\'s stool and he has been losing weight."',params:[{label:'Body Weight',value:'18 kg'},{label:'Stool',value:'Worms visible',abnormal:true},{label:'Appetite',value:'Increased but thin'},{label:'Coat',value:'Dull'},{label:'Temperature',value:'102°F'},{label:'Deworming',value:'Never',abnormal:true},{label:'Vaccination',value:'Up to date'},{label:'Duration',value:'2 weeks',full:true}],dxOptions:['Intestinal Parasites','Parvovirus Infection','Anemia','Gastroenteritis'],correctDx:'Intestinal Parasites',hint:'Worms visible in stool + weight loss despite eating = parasitic infestation.',correctMeds:['Fenbendazole'],correctRoute:'Oral',correctDose:90,doseOptions:[45,90,180,360],drugForDose:'Fenbendazole',dosePerKg:5 },
+  { id:20,group:'preventive',title:'Vaccination Visit',animal:'🐕',animalName:'Puppy',weight:5,tags:[{label:'Healthy puppy',type:''},{label:'Preventive visit',type:''}],dialogue:'"Doctor, I brought my new puppy for vaccination. He seems healthy."',params:[{label:'Body Weight',value:'5 kg'},{label:'Temperature',value:'101.5°F'},{label:'Heart Rate',value:'110 bpm'},{label:'Respiration',value:'25/min'},{label:'Vaccination',value:'None yet',abnormal:true},{label:'Deworming',value:'Not done',abnormal:true},{label:'Appetite',value:'Good'},{label:'Duration',value:'Preventive',full:true}],dxOptions:['Vaccination & Prevention Visit','Parvovirus Infection','Canine Distemper','Gastroenteritis'],correctDx:'Vaccination & Prevention Visit',hint:'Healthy puppy, no illness — this is a preventive visit.',correctMeds:['Fenbendazole','Vitamin B complex'],correctRoute:'Oral',correctDose:25,doseOptions:[12,25,50,100],drugForDose:'Fenbendazole',dosePerKg:5 }
+];
+
+const FREE_CASE_IDS = [1,2,3,4,5]; // first 5 free
+
+const MED_TRAY = {
+  'Antibiotics':['Oxytetracycline','Enrofloxacin','Amoxicillin','Gentamicin','Ceftriaxone','Sulfonamides'],
+  'NSAIDs / Antipyretics':['Meloxicam','Flunixin meglumine','Ketoprofen','Paracetamol'],
+  'Antihistamines':['Chlorpheniramine maleate','Pheniramine maleate'],
+  'Antiemetics':['Metoclopramide','Ondansetron'],
+  'Antidiarrheal / GI':['Kaolin-pectin','Probiotics','ORS','Pantoprazole','Liquid paraffin'],
+  'Dewormers':['Albendazole','Fenbendazole','Ivermectin'],
+  'Fluids':['Normal saline','Ringer lactate','Dextrose 5%'],
+  'Analgesics':['Butorphanol'],
+  'Vitamins / Minerals':['Vitamin B complex','Calcium borogluconate'],
+  'Hormones':['Oxytocin','Dexamethasone'],
+  'Antiprotozoal':['Amprolium','Diminazene aceturate'],
+  'Vaccines':['Rabies vaccine'],
+};
+
+// ============ STATE ============
+let currentCase = null;
+let selectedMeds = [];
+let selectedRoute = null;
+let selectedDose = null;
+let dxDone = false;
+let dxCorrect = false;
+let dxAttempts = 0;
+let selectedPlan = 'premium';
+let selectedPayMethod = 'upi';
+let selectedRole = 'Vet Student';
+let otpMode = 'login';
+
+let userData = JSON.parse(localStorage.getItem('vl_user') || 'null');
+let isPremium = JSON.parse(localStorage.getItem('vl_premium') || 'false');
+let scoreHistory = JSON.parse(localStorage.getItem('vl_scores') || '[]');
+let completedCases = JSON.parse(localStorage.getItem('vl_done') || '[]');
+
+// ============ TIMER ============
+let timerSecs = 85632; // ~23h47m
+setInterval(() => {
+  timerSecs = Math.max(0, timerSecs - 1);
+  const h = String(Math.floor(timerSecs/3600)).padStart(2,'0');
+  const m = String(Math.floor((timerSecs%3600)/60)).padStart(2,'0');
+  const s = String(timerSecs%60).padStart(2,'0');
+  const el = document.getElementById('offer-timer');
+  if(el) el.textContent = `${h}:${m}:${s}`;
+}, 1000);
+
+// ============ NAVIGATION ============
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  if(name==='scores') renderScores();
+  if(name==='library') renderLibrary();
+  if(name==='home') updateHome();
+  if(name==='profile') updateProfileDisplay();
+}
+
+// ============ SPLASH ============
+setTimeout(() => {
+  if(userData) {
+    updateHome();
+    showScreen('home');
+  } else {
+    showScreen('login');
+  }
+}, 2000);
+
+// ============ AUTH ============
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value.trim();
+  if(!email || !pass) { showToast('Please fill in all fields'); return; }
+  // Simulate login
+  if(!userData) {
+    userData = { name: email.split('@')[0], email, role:'Vet Student', college:'' };
+  }
+  localStorage.setItem('vl_user', JSON.stringify(userData));
+  showScreen('subscribe');
+}
+
+function doSignup() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const pass = document.getElementById('signup-password').value.trim();
+  if(!name||!email||!pass) { showToast('Please fill in all fields'); return; }
+  userData = { name, email, role:'Vet Student', college:'' };
+  localStorage.setItem('vl_user', JSON.stringify(userData));
+  document.getElementById('profile-name-input').value = name;
+  showScreen('profile-setup');
+}
+
+function showOTPEntry(mode) {
+  otpMode = mode;
+  showScreen('phone');
+}
+
+function sendOTP() {
+  const phone = document.getElementById('phone-number').value.trim();
+  if(phone.length < 10) { showToast('Enter a valid 10-digit number'); return; }
+  document.getElementById('otp-phone-display').textContent = phone;
+  document.querySelectorAll('.otp-input').forEach(i => i.value='');
+  showScreen('otp');
+  showToast('OTP sent! (Demo: any 6 digits)');
+}
+
+function otpMove(el, idx) {
+  const inputs = document.querySelectorAll('.otp-input');
+  if(el.value.length > 1) el.value = el.value.slice(-1);
+  if(el.value && idx < 5) inputs[idx+1].focus();
+}
+
+function verifyOTP() {
+  const inputs = document.querySelectorAll('.otp-input');
+  const code = [...inputs].map(i=>i.value).join('');
+  if(code.length < 6) { showToast('Enter all 6 digits'); return; }
+  if(!userData) {
+    userData = { name:'User', email:'phone@vetlearn.app', role:'Vet Student', college:'' };
+    localStorage.setItem('vl_user', JSON.stringify(userData));
+    showScreen('profile-setup');
+  } else {
+    showScreen('subscribe');
+  }
+}
+
+function selectRole(card, role) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedRole = role;
+}
+
+function saveProfile() {
+  const name = document.getElementById('profile-name-input').value.trim();
+  const college = document.getElementById('profile-college').value.trim();
+  if(!name) { showToast('Please enter your name'); return; }
+  userData.name = name;
+  userData.role = selectedRole;
+  userData.college = college;
+  localStorage.setItem('vl_user', JSON.stringify(userData));
+  showScreen('subscribe');
+}
+
+function doLogout() {
+  if(confirm('Are you sure you want to logout?')) {
+    userData = null;
+    localStorage.removeItem('vl_user');
+    localStorage.removeItem('vl_premium');
+    showScreen('login');
+  }
+}
+
+// ============ SUBSCRIPTION ============
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.getElementById('plan-free').classList.toggle('selected', plan==='free');
+  document.getElementById('plan-premium').classList.toggle('selected', plan==='premium');
+  const payArea = document.getElementById('payment-area');
+  const freeCta = document.getElementById('free-cta');
+  const payBtn = document.getElementById('pay-btn');
+  if(plan==='free') {
+    payArea.style.display='none'; freeCta.style.display='block';
+    payBtn.textContent='Continue with Free Plan';
+    payBtn.style.background='var(--muted)';
+  } else {
+    payArea.style.display='block'; freeCta.style.display='none';
+    payBtn.textContent='Pay ₹299 – Get Lifetime Access';
+    payBtn.style.background='';
+  }
+}
+
+function selectPayMethod(method) {
+  selectedPayMethod = method;
+  document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('pay-'+method).classList.add('selected');
+  document.getElementById('upi-fields').style.display = method==='upi' ? 'block':'none';
+  document.getElementById('card-fields').style.display = method==='card' ? 'block':'none';
+  document.getElementById('store-fields').style.display = method==='store' ? 'block':'none';
+}
+
+function processPayment() {
+  if(selectedPlan==='free') {
+    isPremium = false;
+    localStorage.setItem('vl_premium','false');
+    updateHome(); showScreen('home');
+    return;
+  }
+  // Simulate payment processing
+  const btn = document.getElementById('pay-btn');
+  btn.textContent = '⏳ Processing...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = 'Pay ₹299 – Get Lifetime Access';
+    btn.disabled = false;
+    document.getElementById('payment-success').classList.add('active');
+  }, 1800);
+}
+
+function afterPayment() {
+  isPremium = true;
+  localStorage.setItem('vl_premium','true');
+  document.getElementById('payment-success').classList.remove('active');
+  updateHome(); showScreen('home');
+}
+
+// ============ HOME ============
+function updateHome() {
+  if(!userData) return;
+  const name = userData.name || 'Doctor';
+  document.getElementById('home-username').textContent = name.split(' ')[0] + ' 👋';
+  const badge = document.getElementById('home-plan-badge');
+  const upgradeBanner = document.getElementById('upgrade-banner-home');
+  if(isPremium) {
+    badge.innerHTML = '<div class="premium-badge">⭐ Premium Member</div>';
+    upgradeBanner.style.display='none';
+  } else {
+    badge.innerHTML = '<div class="premium-badge" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)">🆓 Free Plan · 5 Cases</div>';
+    upgradeBanner.style.display='block';
+  }
+  const total = scoreHistory.reduce((a,b)=>a+b.score,0);
+  document.getElementById('total-score-home').textContent = total;
+  document.getElementById('cases-done-home').textContent = completedCases.length;
+}
+
+// ============ LIBRARY ============
+function renderLibrary() {
+  const groups = {dog:'list-dog',livestock:'list-livestock',ruminant:'list-ruminant',poultry:'list-poultry',preventive:'list-preventive'};
+  Object.keys(groups).forEach(g => {
+    const el = document.getElementById(groups[g]);
+    const cases = CASES.filter(c=>c.group===g);
+    el.innerHTML = cases.map(c => {
+      const isLocked = !isPremium && !FREE_CASE_IDS.includes(c.id);
+      return `<div class="case-card ${isLocked?'locked':''}" onclick="${isLocked?'showUpgradePrompt()':'loadCase('+c.id+')'}">
+        <div class="case-animal">${c.animal}</div>
+        <div class="case-info"><strong>${c.title}</strong><span>${c.animalName} · ${c.weight}kg</span></div>
+        ${isLocked?'<span class="lock-icon">🔒</span>':completedCases.includes(c.id)?'<span class="case-done">✅</span>':'<span style="color:var(--muted);font-size:16px">▶</span>'}
+      </div>`;
+    }).join('');
+  });
+}
+
+function showUpgradePrompt() {
+  if(confirm('🔒 This case is locked.\n\nUpgrade to Premium (₹299 lifetime) to unlock all 20 cases.\n\nTap OK to upgrade!')) {
+    showScreen('subscribe');
+  }
+}
+
+// ============ CASE LOADING ============
+function startRandomCase() {
+  const available = isPremium ? CASES : CASES.filter(c=>FREE_CASE_IDS.includes(c.id));
+  const idx = Math.floor(Math.random()*available.length);
+  loadCase(available[idx].id);
+}
+
+function loadCase(id) {
+  if(!isPremium && !FREE_CASE_IDS.includes(id)) { showUpgradePrompt(); return; }
+  currentCase = CASES.find(c=>c.id===id);
+  selectedMeds=[]; selectedRoute=null; selectedDose=null;
+  dxDone=false; dxCorrect=false; dxAttempts=0;
+
+  document.getElementById('intro-title').textContent = 'Case '+currentCase.id+': '+currentCase.title;
+  document.getElementById('intro-animal').textContent = currentCase.animal;
+  document.getElementById('intro-dialogue').textContent = currentCase.dialogue;
+  document.getElementById('intro-tags').innerHTML = currentCase.tags.map(t=>`<span class="status-tag ${t.type}">${t.label}</span>`).join('');
+
+  document.getElementById('params-grid').innerHTML = currentCase.params.map(p=>`
+    <div class="param-card ${p.full?'full':''}">
+      <div class="param-label">${p.label}</div>
+      <div class="param-value ${p.abnormal?'abnormal':''}">${p.value}</div>
+    </div>`).join('');
+
+  document.getElementById('dx-options').innerHTML = currentCase.dxOptions.map(opt=>`
+    <button class="dx-option" onclick="selectDx(this,'${opt.replace(/'/g,"\\'")}')">
+      <span style="font-size:18px">🔬</span> ${opt}
+    </button>`).join('');
+  document.getElementById('hint-box').style.display='none';
+
+  renderMedTray();
+  showScreen('intro');
+}
+
+// ============ DIAGNOSIS ============
+function selectDx(btn, choice) {
+  if(dxDone) return;
+  dxAttempts++;
+  if(choice===currentCase.correctDx) {
+    btn.classList.add('correct'); dxDone=true; dxCorrect=true;
+    setTimeout(()=>showScreen('treatment'),700);
+  } else {
+    btn.classList.add('wrong'); btn.disabled=true;
+    document.getElementById('hint-text').textContent = '💡 '+currentCase.hint;
+    document.getElementById('hint-box').style.display='flex';
+    if(dxAttempts>=2) {
+      setTimeout(()=>{
+        document.querySelectorAll('.dx-option').forEach(b=>{ if(b.textContent.includes(currentCase.correctDx)) b.classList.add('correct'); });
+        dxDone=true; dxCorrect=false;
+        setTimeout(()=>showScreen('treatment'),1000);
+      },1500);
+    }
+  }
+}
+
+// ============ TREATMENT ============
+function renderMedTray() {
+  document.getElementById('med-tray').innerHTML = Object.keys(MED_TRAY).map(cat=>`
+    <div>
+      <div class="med-category-title">${cat}</div>
+      <div class="med-chips">${MED_TRAY[cat].map(med=>`
+        <button class="med-chip" onclick="toggleMed(this,'${med}')">${med}</button>`).join('')}
+      </div>
+    </div>`).join('');
+  updateSelectedBar(); renderDoseSection();
+  document.querySelectorAll('.route-btn').forEach(b=>b.classList.remove('selected'));
+}
+
+function toggleMed(btn, med) {
+  if(selectedMeds.includes(med)) { selectedMeds=selectedMeds.filter(m=>m!==med); btn.classList.remove('selected'); }
+  else { selectedMeds.push(med); btn.classList.add('selected'); }
+  updateSelectedBar(); renderDoseSection();
+}
+
+function updateSelectedBar() {
+  const bar = document.getElementById('selected-meds-bar');
+  const disp = document.getElementById('selected-meds-display');
+  bar.style.display = selectedMeds.length?'block':'none';
+  disp.innerHTML = selectedMeds.map(m=>`<span class="selected-tag">${m}</span>`).join('');
+}
+
+function renderDoseSection() {
+  const sec = document.getElementById('dose-section');
+  if(!selectedMeds.length||!currentCase) { sec.style.display='none'; return; }
+  sec.style.display='block';
+  const c = currentCase;
+  document.getElementById('dose-card').innerHTML=`
+    <h4>💊 Dose Calculation — ${c.drugForDose}</h4>
+    <div class="dose-row"><span>Dose rate:</span><span style="font-weight:800">${c.dosePerKg} mg/kg</span></div>
+    <div class="dose-row"><span>Weight:</span><span style="font-weight:800">${c.weight} kg</span></div>
+    <div class="dose-row"><span>Required:</span><span style="font-weight:800;color:var(--green)">${c.correctDose} mg</span></div>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);margin-top:8px">Select correct dose:</div>
+    <div class="dose-options">${c.doseOptions.map(d=>`
+      <button class="dose-btn ${selectedDose===d?'selected':''}" onclick="selectDoseBtn(this,${d})">${d} mg</button>`).join('')}
+    </div>`;
+}
+
+function selectDoseBtn(btn, dose) {
+  selectedDose=dose;
+  document.querySelectorAll('.dose-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function selectRoute(route) {
+  selectedRoute=route;
+  document.querySelectorAll('.route-btn').forEach(b=>b.classList.remove('selected'));
+  event.target.classList.add('selected');
+}
+
+function submitTreatment() {
+  if(!selectedMeds.length) { showToast('Select at least one medicine'); return; }
+  if(!selectedRoute) { showToast('Select a route of administration'); return; }
+  if(!selectedDose) { showToast('Select a dose'); return; }
+  if(['IM','IV','SC'].includes(selectedRoute)) {
+    document.getElementById('inject-overlay').classList.add('active');
+    setTimeout(()=>{ document.getElementById('inject-overlay').classList.remove('active'); showOutcome(); },2200);
+  } else showOutcome();
+}
+
+// ============ OUTCOME ============
+function showOutcome() {
+  const c = currentCase;
+  let dxScore = dxCorrect ? 40 : (dxAttempts<=2?20:0);
+  const correctSet = new Set(c.correctMeds.map(m=>m.toLowerCase()));
+  const selectedSet = new Set(selectedMeds.map(m=>m.toLowerCase()));
+  const matches = [...correctSet].filter(m=>selectedSet.has(m)).length;
+  const drugScore = matches===correctSet.size ? 40 : (matches>0?20:0);
+  const doseScore = selectedDose===c.correctDose ? 20 : (Math.abs(selectedDose-c.correctDose)<=c.correctDose*0.5?10:0);
+  const total = dxScore+drugScore+doseScore;
+
+  let outcomeType, outcomeTitle, outcomeMsg;
+  if(total>=80){ outcomeType='recovered'; outcomeTitle='Animal Recovered! 🎉'; outcomeMsg='"Thank you doctor! My animal is fine now!" — Owner'; }
+  else if(total>=50){ outcomeType='partial'; outcomeTitle='Partial Improvement'; outcomeMsg='Treatment was partially correct. Review your drug selection or dose.'; }
+  else if(total>=20){ outcomeType='worsened'; outcomeTitle='Condition Worsened'; outcomeMsg='Incorrect treatment caused deterioration. Review your diagnosis and drug choices.'; }
+  else { outcomeType='died'; outcomeTitle='Animal Did Not Survive'; outcomeMsg='Treatment was incorrect. Every mistake is a learning opportunity. Try again!'; }
+
+  const animalEl = document.getElementById('outcome-animal');
+  animalEl.textContent = c.animal; animalEl.className='outcome-animal';
+  if(outcomeType==='recovered') animalEl.classList.add('recovered');
+  if(outcomeType==='died') animalEl.classList.add('died');
+  const titleEl = document.getElementById('outcome-title');
+  titleEl.textContent = outcomeTitle;
+  titleEl.className = 'outcome-title '+(total>=80?'success':'fail');
+  document.getElementById('outcome-msg').textContent = outcomeMsg;
+  document.getElementById('score-breakdown').innerHTML=`
+    <div class="score-row"><span>Diagnosis</span><span class="score-pts ${dxScore===40?'full':dxScore>0?'partial':'zero'}">${dxScore}/40</span></div>
+    <div class="score-row"><span>Drug Selection</span><span class="score-pts ${drugScore===40?'full':drugScore>0?'partial':'zero'}">${drugScore}/40</span></div>
+    <div class="score-row"><span>Dose Accuracy</span><span class="score-pts ${doseScore===20?'full':doseScore>0?'partial':'zero'}">${doseScore}/20</span></div>
+    <div class="score-row"><span>Total Score</span><span>${total}/100</span></div>`;
+
+  scoreHistory.unshift({caseId:c.id,title:c.title,animal:c.animal,score:total,dxScore,drugScore,doseScore});
+  if(scoreHistory.length>50) scoreHistory.pop();
+  localStorage.setItem('vl_scores',JSON.stringify(scoreHistory));
+  if(!completedCases.includes(c.id)) completedCases.push(c.id);
+  localStorage.setItem('vl_done',JSON.stringify(completedCases));
+  showScreen('outcome');
+}
+
+// ============ SCORES ============
+function renderScores() {
+  const avg = scoreHistory.length ? Math.round(scoreHistory.reduce((a,b)=>a+b.score,0)/scoreHistory.length) : 0;
+  const best = scoreHistory.length ? Math.max(...scoreHistory.map(s=>s.score)) : 0;
+  const total = scoreHistory.reduce((a,b)=>a+b.score,0);
+  document.getElementById('score-ring-num').textContent=avg;
+  document.getElementById('sc-cases').textContent=scoreHistory.length;
+  document.getElementById('sc-total').textContent=total;
+  document.getElementById('sc-best').textContent=best;
+  const ring=document.getElementById('score-ring');
+  ring.style.strokeDashoffset = 314.2-(314.2*avg/100);
+  const list=document.getElementById('score-history-list');
+  list.innerHTML = scoreHistory.length ? scoreHistory.map(s=>`
+    <div class="score-history-item">
+      <div class="shi-animal">${s.animal}</div>
+      <div class="shi-info"><div class="shi-name">${s.title}</div><div class="shi-score">Dx:${s.dxScore} · Drug:${s.drugScore} · Dose:${s.doseScore}</div></div>
+      <div class="shi-badge">${s.score}</div>
+    </div>`).join('') : '<div style="text-align:center;padding:24px;color:var(--muted);font-weight:700">No cases completed yet</div>';
+}
+
+// ============ PROFILE ============
+function updateProfileDisplay() {
+  if(!userData) return;
+  document.getElementById('profile-display-name').textContent = userData.name||'User';
+  document.getElementById('profile-display-role').textContent = userData.role||'Vet Student';
+  document.getElementById('profile-email-display').textContent = userData.email||'';
+  document.getElementById('profile-role-display').textContent = userData.role||'Vet Student';
+  document.getElementById('profile-college-display').textContent = userData.college||'Not set';
+  const planCard = document.getElementById('profile-plan-status');
+  if(isPremium) {
+    planCard.innerHTML='<div class="plan-status-icon">⭐</div><div class="plan-status-info"><strong>Premium Member</strong><span>Lifetime access · All 20 cases</span></div>';
+  } else {
+    planCard.style.background='linear-gradient(135deg,#6b7280,#4b5563)';
+    planCard.innerHTML='<div class="plan-status-icon">🆓</div><div class="plan-status-info"><strong>Free Plan</strong><span>5 cases · <span style="color:#fbbf24;cursor:pointer" onclick="showScreen(\'subscribe\')">Upgrade ₹299 →</span></span></div>';
+  }
+}
+
+// ============ TOAST ============
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
